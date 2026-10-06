@@ -4,3 +4,7 @@ build/
 *.iml
 *.log
 credentials.properties
+bin/
+.vscode/
+.gradle/
+build/
