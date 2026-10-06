@@ -1,4 +1,4 @@
-package com.example;
+package com.daroogie.shopvalue;
 
 import javax.inject.Inject;
 import com.google.inject.Provides;
