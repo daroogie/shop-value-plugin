@@ -41,17 +41,17 @@ tasks.register('run', JavaExec) {
     mainClass = pluginMainClass
 
     // System properties passed directly to the JVM
-    jvmArgs "-ea",
-            "-XX:+DisableAttachMechanism",
-            "-Drunelite.launcher.blacklistedDlls=RTSSHooks.dll,RTSSHooks64.dll,NahimicOSD.dll,NahimicMSIOSD.dll,Nahimic2OSD.dll,Nahimic2DevProps.dll,k_fps32.dll,k_fps64.dll,SS2DevProps.dll,SS2OSD.dll,GTIII-OSD64-GL.dll,GTIII-OSD64-VK.dll,GTIII-OSD64.dll,OWExplorer.dll,OWClient.dll,OWUtils.dll",
-            "-Xmx768m",
-            "-Xss2m",
-            "-XX:CompileThreshold=1500",
-            "-Dsun.java2d.d3d=true",
-            "-Dsun.java2d.opengl=false",
-            "-Drunelite.launcher.version=2.7.5",
-            "-Drunelite.pluginhub.version=true",
-            "-DdeveloperClient=true"
+tasks.withType(JavaExec) {
+    jvmArgs = [
+        "-ea",
+        "-Drunelite.launcher.blacklistedDlls=" +
+            "RTSSHooks.dll,RTSSHooks64.dll,NahimicOSD.dll," +
+            "NahimicMSIOSD.dll,Nahimic2OSD.dll,Nahimic2DevProps.dll," +
+            "k_fps32.dll,k_fps64.dll,SS2DevProps.dll,SS2OSD.dll," +
+            "GTIII-OSD64-GL.dll,GTIII-OSD64-VK.dll,GTIII-OSD64.dll," +
+            "OWExplorer.dll,OWClient.dll,OWUtils.dll"
+    ]
+}
 
     // Application arguments passed to RuneLite main()
     args "--developer-mode", "--debug"
