@@ -1,84 +1,33 @@
 plugins {
-	id 'java'
+    id 'java'
 }
 
-version = '1.0.0'
+group 'com.daroogie'
+version '1.0-SNAPSHOT'
 
 repositories {
-	mavenLocal()
-	maven {
-		url = 'https://repo.runelite.net'
-		content {
-			includeGroupByRegex("net\\.runelite.*")
-		}
-	}
-	mavenCentral()
+    mavenCentral()
+    maven {
+        url = 'https://repo.runelite.net'
+    }
 }
 
-def runeLiteVersion = 'latest.release'
-def pluginMainClass = 'com.example.ExamplePluginTest'
+def runeliteVersion = 'latest.release'
 
 dependencies {
-	compileOnly group: 'net.runelite', name:'client', version: runeLiteVersion
+    compileOnly "net.runelite:client:${runeliteVersion}"
+    compileOnly 'org.projectlombok:lombok:1.18.30'
+    annotationProcessor 'org.projectlombok:lombok:1.18.30'
 
-	compileOnly 'org.projectlombok:lombok:1.18.30'
-	annotationProcessor 'org.projectlombok:lombok:1.18.30'
-
-	testImplementation 'junit:junit:4.12'
-	testImplementation group: 'net.runelite', name:'client', version: runeLiteVersion
-	testImplementation group: 'net.runelite', name:'jshell', version: runeLiteVersion
+    testImplementation 'junit:junit:4.12'
+    testImplementation "net.runelite:client:${runeliteVersion}"
 }
 
-group = 'com.example'
-
-tasks.withType(JavaCompile).configureEach {
-	options.encoding = 'UTF-8'
-	options.release.set(11)
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
 }
 
-tasks.register('run', JavaExec) {
-    classpath = sourceSets.test.runtimeClasspath
-    mainClass = pluginMainClass
-
-    // System properties passed directly to the JVM
-tasks.withType(JavaExec) {
-    jvmArgs = [
-        "-ea",
-        "-Drunelite.launcher.blacklistedDlls=" +
-            "RTSSHooks.dll,RTSSHooks64.dll,NahimicOSD.dll," +
-            "NahimicMSIOSD.dll,Nahimic2OSD.dll,Nahimic2DevProps.dll," +
-            "k_fps32.dll,k_fps64.dll,SS2DevProps.dll,SS2OSD.dll," +
-            "GTIII-OSD64-GL.dll,GTIII-OSD64-VK.dll,GTIII-OSD64.dll," +
-            "OWExplorer.dll,OWClient.dll,OWUtils.dll"
-    ]
-}
-
-    // Application arguments passed to RuneLite main()
-    args "--developer-mode", "--debug"
-}
-
-tasks.register('shadowJar', Jar) {
-	dependsOn configurations.testRuntimeClasspath
-	manifest {
-		attributes('Main-Class': pluginMainClass, 'Multi-Release': true)
-	}
-
-	duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-	from sourceSets.main.output
-	from sourceSets.test.output
-	from {
-		configurations.testRuntimeClasspath.collect { file ->
-			file.isDirectory() ? file : zipTree(file)
-		}
-	}
-
-	exclude 'META-INF/INDEX.LIST'
-	exclude 'META-INF/*.SF'
-	exclude 'META-INF/*.DSA'
-	exclude 'META-INF/*.RSA'
-	exclude '**/module-info.class'
-
-	group = BasePlugin.BUILD_GROUP
-	archiveClassifier.set('shadow')
-	archiveFileName.set("${rootProject.name}-${project.version}-all.jar")
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
 }
