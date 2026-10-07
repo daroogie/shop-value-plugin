@@ -50,7 +50,48 @@ public class ShopValueOverlay extends Overlay
             return null;
         }
 
-        // 2. Get Hovered Target
+        // 2. Check Shop Title (Child 2) to determine store type
+        boolean isGeneralStore = false;
+        Widget titleWidget = client.getWidget(InterfaceID.SHOP, 2);
+        if (titleWidget != null && titleWidget.getText() != null)
+        {
+            if (titleWidget.getText().toLowerCase().contains("general store"))
+            {
+                isGeneralStore = true;
+            }
+        }
+
+        double changePerItem = isGeneralStore ? 0.004 : 0.03;
+
+        // 3. Scan Shop Grid (Child 16) for Total Shop Value
+        long totalShopValue = 0;
+        Widget shopItemGrid = client.getWidget(InterfaceID.SHOP, 16);
+        if (shopItemGrid != null)
+        {
+            Widget[] items = shopItemGrid.getChildren();
+            if (items != null)
+            {
+                for (Widget itemWidget : items)
+                {
+                    if (itemWidget != null && itemWidget.getItemId() > 0)
+                    {
+                        int itemId = itemWidget.getItemId();
+                        int stock = itemWidget.getItemQuantity();
+
+                        if (stock > 0)
+                        {
+                            ItemComposition itemComp = itemManager.getItemComposition(itemId);
+                            int baseVal = itemComp.getPrice();
+                            double priceMultiplier = Math.max(0.10, 0.40 - (changePerItem * stock));
+                            int sellVal = (int) Math.max(1, Math.floor(baseVal * priceMultiplier));
+                            totalShopValue += (long) sellVal * stock;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. Get Hovered Target
         MenuEntry[] menuEntries = client.getMenuEntries();
         if (menuEntries.length == 0)
         {
@@ -74,14 +115,14 @@ public class ShopValueOverlay extends Overlay
         ItemComposition itemComp = itemManager.getItemComposition(targetItemId);
         int canonicalId = itemComp.getId();
         int baseValue = itemComp.getPrice();
+        int highAlch = itemComp.getHaPrice();
         if (baseValue <= 0)
         {
             return null;
         }
 
-        // 3. Directly Scan Shop Item Container Widget (Child 16 is the shop item grid)
+        // Scan target stock in shop grid
         int currentStock = 0;
-        Widget shopItemGrid = client.getWidget(InterfaceID.SHOP, 16);
         if (shopItemGrid != null)
         {
             Widget[] items = shopItemGrid.getChildren();
@@ -104,18 +145,6 @@ public class ShopValueOverlay extends Overlay
         int interfaceGroup = WidgetUtil.componentToInterface(targetWidget.getId());
         boolean isBuyingFromShop = (interfaceGroup == InterfaceID.SHOP);
 
-        // 4. Check Shop Title (Child 2 contains shop name string)
-        boolean isGeneralStore = false;
-        Widget titleWidget = client.getWidget(InterfaceID.SHOP, 2);
-        if (titleWidget != null && titleWidget.getText() != null)
-        {
-            if (titleWidget.getText().toLowerCase().contains("general store"))
-            {
-                isGeneralStore = true;
-            }
-        }
-
-        double changePerItem = isGeneralStore ? 0.004 : 0.03;
         int calculatedPrice;
         String prefix;
 
@@ -128,14 +157,7 @@ public class ShopValueOverlay extends Overlay
         else
         {
             double baseMultiplier = 0.40;
-            double priceMultiplier = baseMultiplier - (changePerItem * currentStock);
-            
-            double minFloor = 0.10;
-            if (priceMultiplier < minFloor)
-            {
-                priceMultiplier = minFloor;
-            }
-
+            double priceMultiplier = Math.max(0.10, baseMultiplier - (changePerItem * currentStock));
             calculatedPrice = (int) Math.max(1, Math.floor(baseValue * priceMultiplier));
             prefix = "Shop Buy Price: ";
         }
@@ -144,12 +166,36 @@ public class ShopValueOverlay extends Overlay
         String formattedPrice = QuantityFormatter.quantityToRSDecimalStack(calculatedPrice);
         String stockText = currentStock > 0 ? " (Stock: " + currentStock + ")" : " (Out of Stock)";
 
-        String tooltipText = ColorUtil.wrapWithColorTag(
-            prefix + formattedPrice + " gp" + stockText,
-            new Color(255, 215, 0)
-        );
+        StringBuilder sb = new StringBuilder();
+        sb.append(prefix).append(formattedPrice).append(" gp").append(stockText);
 
+        // General Store Markdown vs. High Alch Warning
+        if (config.showMarkdownWarning() && !isBuyingFromShop)
+        {
+            sb.append("</br>High Alch: ").append(QuantityFormatter.quantityToRSDecimalStack(highAlch)).append(" gp");
+            if (calculatedPrice < highAlch)
+            {
+                sb.append(" <col=ff0000>(Below High Alch!)</col>");
+            }
+        }
+
+        // Ironman Stock Warning
+        if (config.showIronmanOverstock() && isBuyingFromShop && currentStock > 0)
+        {
+            sb.append("</br><col=ffa500>Ironman Stock Available: ").append(currentStock).append("</col>");
+        }
+
+        // Total Shop Value
+        if (config.showShopTotalValue())
+        {
+            int safeTotal = (int) Math.min(totalShopValue, Integer.MAX_VALUE);
+            sb.append("</br><col=00ff00>Shop Total Stock: ")
+            .append(QuantityFormatter.quantityToRSDecimalStack(safeTotal))
+            .append(" gp</col>");
+        }
+        String tooltipText = ColorUtil.wrapWithColorTag(sb.toString(), new Color(255, 215, 0));
         tooltipManager.add(new Tooltip(tooltipText));
+
         return null;
     }
 }
