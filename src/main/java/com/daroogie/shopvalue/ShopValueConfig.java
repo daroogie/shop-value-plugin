@@ -18,6 +18,16 @@ public interface ShopValueConfig extends Config
     }
 
     @ConfigItem(
+        keyName = "minSellThreshold",
+        name = "Minimum Sell Price Floor (GP)",
+        description = "Warns when selling an item drops or will drop below this GP value."
+    )
+    default int minSellThreshold()
+    {
+        return 50;
+    }
+
+    @ConfigItem(
         keyName = "showMarkdownWarning",
         name = "Show Markdown & Alch Warning",
         description = "Shows dynamic sell price degradation and flags if general store offer is lower than High Alch."

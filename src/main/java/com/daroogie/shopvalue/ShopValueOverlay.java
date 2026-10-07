@@ -146,6 +146,7 @@ public class ShopValueOverlay extends Overlay
         boolean isBuyingFromShop = (interfaceGroup == InterfaceID.SHOP);
 
         int calculatedPrice;
+        int nextSalePrice = 0;
         String prefix;
 
         if (isBuyingFromShop)
@@ -156,18 +157,46 @@ public class ShopValueOverlay extends Overlay
         }
         else
         {
+            // Current Offer Price
             double baseMultiplier = 0.40;
             double priceMultiplier = Math.max(0.10, baseMultiplier - (changePerItem * currentStock));
             calculatedPrice = (int) Math.max(1, Math.floor(baseValue * priceMultiplier));
+
+            // Next Sale Price (after selling 1 more item)
+            double nextMultiplier = Math.max(0.10, baseMultiplier - (changePerItem * (currentStock + 1)));
+            nextSalePrice = (int) Math.max(1, Math.floor(baseValue * nextMultiplier));
+
             prefix = "Shop Buy Price: ";
         }
 
         // 5. Construct Tooltip Text
+        StringBuilder sb = new StringBuilder();
+
         String formattedPrice = QuantityFormatter.quantityToRSDecimalStack(calculatedPrice);
         String stockText = currentStock > 0 ? " (Stock: " + currentStock + ")" : " (Out of Stock)";
 
-        StringBuilder sb = new StringBuilder();
         sb.append(prefix).append(formattedPrice).append(" gp").append(stockText);
+
+        // Minimum Price Floor Warnings & Remaining Sales Calculation
+        if (!isBuyingFromShop)
+        {
+            int minFloor = config.minSellThreshold();
+
+            // Dynamic calculation: How many more can be sold before price drops below minFloor
+            double minMultiplier = (double) minFloor / baseValue;
+            int maxSalesBeforeFloor = (int) Math.floor((0.40 - minMultiplier) / changePerItem) - currentStock;
+
+            sb.append("</br>Next Sale: ").append(nextSalePrice).append(" gp");
+
+            if (maxSalesBeforeFloor > 0)
+            {
+                sb.append("</br><col=00ff00>Can sell ").append(maxSalesBeforeFloor).append(" more before <").append(minFloor).append("gp</col>");
+            }
+            else
+            {
+                sb.append("</br><col=ff0000>Warning: At/Below ").append(minFloor).append("gp floor!</col>");
+            }
+        }
 
         // General Store Markdown vs. High Alch Warning
         if (config.showMarkdownWarning() && !isBuyingFromShop)
@@ -190,9 +219,10 @@ public class ShopValueOverlay extends Overlay
         {
             int safeTotal = (int) Math.min(totalShopValue, Integer.MAX_VALUE);
             sb.append("</br><col=00ff00>Shop Total Stock: ")
-            .append(QuantityFormatter.quantityToRSDecimalStack(safeTotal))
-            .append(" gp</col>");
+              .append(QuantityFormatter.quantityToRSDecimalStack(safeTotal))
+              .append(" gp</col>");
         }
+
         String tooltipText = ColorUtil.wrapWithColorTag(sb.toString(), new Color(255, 215, 0));
         tooltipManager.add(new Tooltip(tooltipText));
 
