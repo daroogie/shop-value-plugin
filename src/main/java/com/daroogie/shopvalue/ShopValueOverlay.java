@@ -3,6 +3,8 @@ package com.daroogie.shopvalue;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.inject.Inject;
 import net.runelite.api.Client;
 import net.runelite.api.ItemComposition;
@@ -20,6 +22,8 @@ import net.runelite.client.util.QuantityFormatter;
 
 public class ShopValueOverlay extends Overlay
 {
+    private static final Pattern SELL_QUANTITY_PATTERN = Pattern.compile("^Sell\\s+(\\d+)", Pattern.CASE_INSENSITIVE);
+
     private final Client client;
     private final ShopValueConfig config;
     private final TooltipManager tooltipManager;
@@ -196,6 +200,28 @@ public class ShopValueOverlay extends Overlay
             {
                 sb.append("</br><col=ff0000>Warning: At/Below ").append(minFloor).append("gp floor!</col>");
             }
+
+            // Check if hovering a bulk menu option (e.g., "Sell 1", "Sell 5", "Sell 10", "Sell 50")
+            String option = topEntry.getOption();
+            if (option != null)
+            {
+                Matcher matcher = SELL_QUANTITY_PATTERN.matcher(option.trim());
+                if (matcher.find())
+                {
+                    try
+                    {
+                        int amount = Integer.parseInt(matcher.group(1));
+                        if (amount > 1)
+                        {
+                            sb.append(calculateBulkSellInfo(baseValue, currentStock, changePerItem, amount));
+                        }
+                    }
+                    catch (NumberFormatException e)
+                    {
+                        // Ignore overflow
+                    }
+                }
+            }
         }
 
         // General Store Markdown vs. High Alch Warning
@@ -227,5 +253,24 @@ public class ShopValueOverlay extends Overlay
         tooltipManager.add(new Tooltip(tooltipText));
 
         return null;
+    }
+
+    private String calculateBulkSellInfo(int baseValue, int currentStock, double changePerItem, int quantity)
+    {
+        long totalRevenue = 0;
+        double baseMultiplier = 0.40;
+
+        for (int i = 0; i < quantity; i++)
+        {
+            double priceMultiplier = Math.max(0.10, baseMultiplier - (changePerItem * (currentStock + i)));
+            int itemPrice = (int) Math.max(1, Math.floor(baseValue * priceMultiplier));
+            totalRevenue += itemPrice;
+        }
+
+        int avgPrice = (int) (totalRevenue / quantity);
+        
+        return "</br><col=ffff00>Sell " + quantity + " Total: " 
+            + QuantityFormatter.quantityToRSDecimalStack((int) Math.min(totalRevenue, Integer.MAX_VALUE)) 
+            + " gp (Avg: " + avgPrice + " gp/ea)</col>";
     }
 }
