@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" shape-rendering="crispEdges">
+  <!-- Abacus Outer Frame (Dark Brown) -->
+  <path d="M2,2 h28 v28 h-28 z" fill="#2d1c0c"/>
+  <path d="M4,4 h24 v24 h-24 z" fill="#5c3a1e"/>
+  <path d="M6,6 h20 v20 h-20 z" fill="#180e06"/>
+
+  <!-- Abacus Rods (Light Metallic/Grey) -->
+  <path d="M10,6 h1 v20 h-1 z" fill="#8d8d8d"/>
+  <path d="M16,6 h1 v20 h-1 z" fill="#8d8d8d"/>
+  <path d="M22,6 h1 v20 h-1 z" fill="#8d8d8d"/>
+
+  <!-- Horizontal Divider Beam -->
+  <path d="M6,12 h20 v2 h-20 z" fill="#3a2210"/>
+
+  <!-- Abacus Beads (OSRS Amber/Gold Theme) -->
+  <!-- Top Section Beads -->
+  <path d="M9,8 h3 v2 h-3 z" fill="#e5a000"/>
+  <path d="M15,9 h3 v2 h-3 z" fill="#e5a000"/>
+  <path d="M21,8 h3 v2 h-3 z" fill="#e5a000"/>
+
+  <!-- Bottom Section Beads -->
+  <path d="M9,16 h3 v2 h-3 z" fill="#d48b00"/>
+  <path d="M9,19 h3 v2 h-3 z" fill="#d48b00"/>
+  <path d="M15,21 h3 v2 h-3 z" fill="#d48b00"/>
+  <path d="M21,15 h3 v2 h-3 z" fill="#d48b00"/>
+  <path d="M21,18 h3 v2 h-3 z" fill="#d48b00"/>
+
+  <!-- OSRS Coin Overlay (Bottom Right Stack) -->
+  <!-- Outline -->
+  <path d="M18,18 h12 v12 h-12 z" fill="#000000"/>
+  
+  <!-- Back Coin -->
+  <path d="M22,19 h6 v6 h-6 z" fill="#9e7c0c"/>
+  <path d="M23,20 h4 v4 h-4 z" fill="#fadb36"/>
+
+  <!-- Middle Coin -->
+  <path d="M20,21 h6 v6 h-6 z" fill="#000000"/>
+  <path d="M21,22 h4 v4 h-4 z" fill="#d1a110"/>
+  <path d="M22,23 h2 v2 h-2 z" fill="#fff375"/>
+
+  <!-- Front Main Coin -->
+  <path d="M19,23 h8 v6 h-8 z" fill="#e0ab12"/>
+  <path d="M20,24 h6 v4 h-6 z" fill="#ffe252"/>
+  <path d="M22,25 h2 v2 h-2 z" fill="#ffffff"/>
+</svg>
